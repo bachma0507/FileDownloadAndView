@@ -8,6 +8,11 @@
 
 #import <UIKit/UIKit.h>
 
-@interface ViewController : UIViewController
+@interface ViewController : UIViewController<NSURLSessionDelegate,NSURLSessionDownloadDelegate,NSURLSessionDataDelegate>
+
+-(IBAction) fileDownload:(id)sender;
+-(IBAction)  fileDownload2:(id)sender;
+- (IBAction)handleSingleTap:(id)sender;
+@property (weak, nonatomic) IBOutlet UIProgressView *progress;
 
 @end
