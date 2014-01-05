@@ -16,11 +16,15 @@
 
 @implementation ViewController
 
+@synthesize tapButton, pdfs, filePath, fileManager, paths;
+
 #pragma mark Constants
 
 #define DEMO_VIEW_CONTROLLER_PUSH FALSE
 
 #pragma mark UIViewController methods
+
+
 
 
 - (void)viewDidLoad
@@ -29,7 +33,27 @@
 	// Do any additional setup after loading the view, typically from a nib.
     [self.progress setProgress:0];
     
+    //NSString *phrase = nil; // Document password (for unlocking most encrypted PDF files)
+    fileManager = [NSFileManager defaultManager];
+    
+    paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    pdfs = [[NSBundle bundleWithPath:[paths objectAtIndex:0]] pathsForResourcesOfType:@"pdf" inDirectory:nil];
+    filePath = [pdfs lastObject]; //assert(filePath != nil); // Path to last PDF file
+    if ([fileManager fileExistsAtPath:filePath]) {
+        [self.tapButton setTitle:@"Tap to Read" forState:normal];
+        [self.progress setHidden:YES];
+    }
+//    if (filePath == nil) {
+//        [self.tapButton setTitle:@"Tap to Download" forState:normal];
+//    }
+//    
+//    else
+//    {
+//        [self.tapButton setTitle:@"Tap to Read" forState:normal];
+//        [self.progress setHidden:YES];
+//    }
 }
+
 
 /*
  ###################### Download Task
@@ -38,12 +62,12 @@
 {
     NSLog(@"Temporary File :%@\n", location);
     NSError *err = nil;
-    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSFileManager *fileManager2 = [NSFileManager defaultManager];
     NSString *docsDir = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
     
     
     NSURL *docsDirURL = [NSURL fileURLWithPath:[docsDir stringByAppendingPathComponent:@"test1.pdf"]];
-    if ([fileManager moveItemAtURL:location
+    if ([fileManager2 moveItemAtURL:location
                              toURL:docsDirURL
                              error: &err])
     {
@@ -92,17 +116,6 @@ expectedTotalBytes:(int64_t)expectedTotalBytes
     
 }
 
--(void) downloadFileWithProgress2
-{
-    NSURL * url = [NSURL URLWithString:@"http://speedyreference.com/bicsi/newsstand/jits/JITS.pdf"];
-    NSURLSessionConfiguration *defaultConfigObject = [NSURLSessionConfiguration defaultSessionConfiguration];
-    NSURLSession *defaultSession = [NSURLSession sessionWithConfiguration: defaultConfigObject delegate:self delegateQueue: [NSOperationQueue mainQueue]];
-    
-    NSURLSessionDownloadTask * downloadTask =[ defaultSession downloadTaskWithURL:url];
-    [downloadTask resume];
-    
-    
-}
 
 
 /*
@@ -142,24 +155,34 @@ didCompleteWithError:(NSError *)error
 {
     if(error == nil)
     {
+        [self.tapButton setTitle:@"Tap to Read" forState:normal];
+        [self.progress setHidden:YES];
+        
         NSLog(@"Download is Succesfull");
     }
     else
         NSLog(@"Error %@",[error userInfo]);
-}
-
--(IBAction)  fileDownload:(id)sender
-{
-    [self downloadFileWithProgress];
-}
-
--(IBAction)  fileDownload2:(id)sender
-{
-    [self downloadFileWithProgress2];
-}
-
-- (IBAction)handleSingleTap:(id)sender {
     
+}
+
+//-(IBAction)  fileDownload:(id)sender
+//{
+//    [self downloadFileWithProgress];
+//}
+
+- (IBAction)buttonPressed:(id)sender {
+    
+    if ([self.tapButton.currentTitle isEqualToString:@"Tap to Download"]) {
+        [self downloadFileWithProgress];
+    }
+    else if ([self.tapButton.currentTitle isEqualToString:@"Tap to Read"]){
+        [self handleSingleTap];
+    }
+}
+
+
+
+- (void)handleSingleTap {
     
     
     NSString *phrase = nil; // Document password (for unlocking most encrypted PDF files)
@@ -168,10 +191,22 @@ didCompleteWithError:(NSError *)error
 //    
 //	NSString *filePath = [pdfs lastObject]; assert(filePath != nil); // Path to last PDF file
     
+    NSFileManager *fileManager1 = [NSFileManager defaultManager];
+    NSArray *paths1 = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSArray *pdfs1 = [[NSBundle bundleWithPath:[paths1 objectAtIndex:0]] pathsForResourcesOfType:@"pdf" inDirectory:nil];
+    NSString *filePath1 = [pdfs1 lastObject]; //assert(filePath != nil); // Path to last PDF file
     
-    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    NSArray *pdfs = [[NSBundle bundleWithPath:[paths objectAtIndex:0]] pathsForResourcesOfType:@"pdf" inDirectory:nil];
-    NSString *filePath = [pdfs lastObject]; assert(filePath != nil); // Path to last PDF file
+    if (![fileManager1 fileExistsAtPath:filePath1]) {
+        NSString *message = @"No PDFs in file path!";
+        UIAlertView *alertView = [[UIAlertView alloc]initWithTitle:@"Warning"
+                                                           message:message
+                                                          delegate:self
+                                                 cancelButtonTitle:@"Ok"
+                                                 otherButtonTitles:nil,nil];
+        [alertView show];
+    }
+    
+    else{
     
 	ReaderDocument *document = [ReaderDocument withDocumentFilePath:filePath password:phrase];
     
@@ -196,6 +231,7 @@ didCompleteWithError:(NSError *)error
 #endif // DEMO_VIEW_CONTROLLER_PUSH
 	}
 }
+}
 
 #pragma mark ReaderViewControllerDelegate methods
 
@@ -211,7 +247,6 @@ didCompleteWithError:(NSError *)error
     
 #endif // DEMO_VIEW_CONTROLLER_PUSH
 }
-
 
 
 

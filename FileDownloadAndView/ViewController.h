@@ -10,9 +10,16 @@
 
 @interface ViewController : UIViewController<NSURLSessionDelegate,NSURLSessionDownloadDelegate,NSURLSessionDataDelegate>
 
--(IBAction) fileDownload:(id)sender;
--(IBAction)  fileDownload2:(id)sender;
-- (IBAction)handleSingleTap:(id)sender;
+
+- (IBAction)buttonPressed:(id)sender;
+
+
 @property (weak, nonatomic) IBOutlet UIProgressView *progress;
+@property (strong, nonatomic) IBOutlet UIButton *tapButton;
+@property  (strong, nonatomic) NSFileManager *fileManager;
+@property  (strong, nonatomic) NSArray *paths;
+@property  (strong, nonatomic) NSArray *pdfs;
+@property  (strong, nonatomic) NSString *filePath;
+
 
 @end
